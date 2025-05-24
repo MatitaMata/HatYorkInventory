@@ -45,50 +45,60 @@
   <button onclick="agregarFilaPEPS()">+ Añadir fila</button>
 
   <script>
-    function agregarFilaPEPS() {
-      const tabla = document.querySelector("#tablaPEPS tbody");
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td><input type="date"></td>
-        <td>
-          <select>
-            <option value="Compra">Compra</option>
-            <option value="Venta">Venta</option>
-          </select>
-        </td>
-        <td><input type="number" class="cantidad"></td>
-        <td><input type="number" class="precio"></td>
-        <td><input type="number" class="total" readonly></td>
-        <td><input type="number" class="existencia" readonly></td>
-      `;
-      tabla.appendChild(fila);
-      aplicarCalculos();
-    }
+  function agregarFilaPEPS() {
+    const tabla = document.querySelector("#tablaPEPS tbody");
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td><input type="date"></td>
+      <td>
+        <select>
+          <option value="Compra">Compra</option>
+          <option value="Venta">Venta</option>
+        </select>
+      </td>
+      <td><input type="number" class="cantidad"></td>
+      <td><input type="number" class="precio"></td>
+      <td><input type="number" class="total" readonly></td>
+      <td><input type="number" class="existencia" readonly></td>
+    `;
+    tabla.appendChild(fila);
+    aplicarEventos();
+  }
 
-    function aplicarCalculos() {
-      document.querySelectorAll("#tablaPEPS tbody tr").forEach((row, i, arr) => {
-        const cantidad = row.querySelector(".cantidad");
-        const precio = row.querySelector(".precio");
-        const total = row.querySelector(".total");
-        const existencia = row.querySelector(".existencia");
-        const movimiento = row.querySelector("select");
-
-        cantidad.addEventListener("input", actualizar);
-        precio.addEventListener("input", actualizar);
-        movimiento.addEventListener("change", actualizar);
-
-        function actualizar() {
-          const cant = parseFloat(cantidad.value) || 0;
-          const pu = parseFloat(precio.value) || 0;
-          total.value = (cant * pu).toFixed(2);
-
-          let anterior = i > 0 ? parseFloat(arr[i-1].querySelector(".existencia").value) || 0 : 0;
-          existencia.value = movimiento.value === "Compra" ? anterior + cant : anterior - cant;
-        }
+  function aplicarEventos() {
+    const filas = document.querySelectorAll("#tablaPEPS tbody tr");
+    filas.forEach(fila => {
+      const inputs = fila.querySelectorAll("input, select");
+      inputs.forEach(input => {
+        input.oninput = actualizarTabla;
+        input.onchange = actualizarTabla;
       });
-    }
+    });
+  }
 
-    aplicarCalculos();
-  </script>
+  function actualizarTabla() {
+    let existenciaAcumulada = 0;
+    const filas = document.querySelectorAll("#tablaPEPS tbody tr");
+    filas.forEach(fila => {
+      const cantidad = parseFloat(fila.querySelector(".cantidad")?.value || 0);
+      const precio = parseFloat(fila.querySelector(".precio")?.value || 0);
+      const movimiento = fila.querySelector("select")?.value;
+      const total = fila.querySelector(".total");
+      const existencia = fila.querySelector(".existencia");
+
+      total.value = (cantidad * precio).toFixed(2);
+
+      if (movimiento === "Compra") {
+        existenciaAcumulada += cantidad;
+      } else if (movimiento === "Venta") {
+        existenciaAcumulada -= cantidad;
+      }
+
+      existencia.value = existenciaAcumulada;
+    });
+  }
+
+  aplicarEventos();
+</script>
 </body>
 </html>
