@@ -1,104 +1,133 @@
-<!DOCTYPE html>
+[⚠️ Suspicious Content] <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Inventario PEPS Interactivo</title>
+  <title>HatYork - Sistema de Control de Inventarios</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
-    h2 { margin-bottom: 10px; }
-    table { border-collapse: collapse; width: 100%; background: white; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 20px; }
+    h1, h2 { margin-bottom: 10px; }
+    nav a { display: block; margin-bottom: 5px; color: #007bff; text-decoration: none; }
+    table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f0f0f0; }
-    input[type="number"], input[type="date"], select { width: 100%; box-sizing: border-box; padding: 5px; }
+    input, select { padding: 5px; width: 100%; box-sizing: border-box; }
     button { margin-top: 10px; padding: 8px 12px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <h2>Inventario PEPS</h2>
+  <h1>HatYork - Sistema de Control de Inventarios</h1>
+  <nav>
+    <a href="#introduccion">Introducción</a>
+    <a href="#operaciones">Operaciones Contables</a>
+    <a href="#peps">Inventario PEPS</a>
+    <a href="#stock">Stock de Mercancía</a>
+    <a href="#utilidad">Utilidad Bruta</a>
+    <a href="#conclusion">Conclusión</a>
+  </nav>
+
+  <h2 id="peps">Inventario PEPS</h2>
   <table id="tablaPEPS">
     <thead>
       <tr>
-        <th>Fecha</th>
-        <th>Movimiento</th>
-        <th>Cantidad</th>
-        <th>Precio Unitario</th>
-        <th>Total</th>
-        <th>Existencia</th>
+        <th colspan="7">Entradas</th>
+        <th colspan="7">Salidas</th>
+      </tr>
+      <tr>
+        <th>Fecha</th><th>Motivo</th><th>Descripción</th><th>Cantidad</th><th>Precio Unitario</th><th>Total</th><th>Saldo</th>
+        <th>Motivo</th><th>Descripción</th><th>Cantidad</th><th>Precio Unitario</th><th>Total</th><th>Existencias</th><th>Saldo</th>
       </tr>
     </thead>
-    <tbody>
-      <tr>
-        <td><input type="date"></td>
-        <td>
-          <select>
-            <option value="Compra">Compra</option>
-            <option value="Venta">Venta</option>
-          </select>
-        </td>
-        <td><input type="number" class="cantidad"></td>
-        <td><input type="number" class="precio"></td>
-        <td><input type="number" class="total" readonly></td>
-        <td><input type="number" class="existencia" readonly></td>
-      </tr>
-    </tbody>
+    <tbody></tbody>
   </table>
   <button onclick="agregarFilaPEPS()">+ Añadir fila</button>
 
   <script>
-  function agregarFilaPEPS() {
-    const tabla = document.querySelector("#tablaPEPS tbody");
-    const fila = document.createElement("tr");
-    fila.innerHTML = `
-      <td><input type="date"></td>
-      <td>
-        <select>
-          <option value="Compra">Compra</option>
-          <option value="Venta">Venta</option>
-        </select>
-      </td>
-      <td><input type="number" class="cantidad"></td>
-      <td><input type="number" class="precio"></td>
-      <td><input type="number" class="total" readonly></td>
-      <td><input type="number" class="existencia" readonly></td>
-    `;
-    tabla.appendChild(fila);
-    aplicarEventos();
-  }
+    let saldoEntradas = [];
 
-  function aplicarEventos() {
-    const filas = document.querySelectorAll("#tablaPEPS tbody tr");
-    filas.forEach(fila => {
-      const inputs = fila.querySelectorAll("input, select");
-      inputs.forEach(input => {
-        input.oninput = actualizarTabla;
-        input.onchange = actualizarTabla;
+    function agregarFilaPEPS() {
+      const tbody = document.querySelector("#tablaPEPS tbody");
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td><input type="date"></td>
+        <td>
+          <select class="motivoEntrada">
+            <option value="">--</option>
+            <option value="Inventario inicial">Inventario inicial</option>
+            <option value="Compra">Compra</option>
+            <option value="Devolución sobre compra">Devolución sobre compra</option>
+          </select>
+        </td>
+        <td><input type="text" class="descripcionEntrada"></td>
+        <td><input type="number" class="cantidadEntrada"></td>
+        <td><input type="number" class="precioEntrada"></td>
+        <td><input type="text" class="totalEntrada" readonly></td>
+        <td><input type="text" class="saldoEntrada" readonly></td>
+
+        <td>
+          <select class="motivoSalida">
+            <option value="">--</option>
+            <option value="Venta">Venta</option>
+            <option value="Devolución sobre venta">Devolución sobre venta</option>
+          </select>
+        </td>
+        <td><input type="text" class="descripcionSalida"></td>
+        <td><input type="number" class="cantidadSalida"></td>
+        <td><input type="number" class="precioSalida"></td>
+        <td><input type="text" class="totalSalida" readonly></td>
+        <td><input type="number" class="existencias" readonly></td>
+        <td><input type="text" class="saldoSalida" readonly></td>
+      `;
+      tbody.appendChild(fila);
+      fila.querySelectorAll("input, select").forEach(el => el.addEventListener("input", () => calcularPEPS()));
+    }
+
+    function calcularPEPS() {
+      const filas = document.querySelectorAll("#tablaPEPS tbody tr");
+      saldoEntradas = [];
+      let totalExistencias = 0;
+
+      filas.forEach(fila => {
+        const motivoE = fila.querySelector(".motivoEntrada").value;
+        const cantE = parseFloat(fila.querySelector(".cantidadEntrada").value) || 0;
+        const puE = parseFloat(fila.querySelector(".precioEntrada").value) || 0;
+        const totalE = cantE * puE;
+        const saldoE = `${puE}-${cantE}`;
+
+        if (motivoE) {
+          fila.querySelector(".totalEntrada").value = totalE.toFixed(2);
+          fila.querySelector(".saldoEntrada").value = saldoE;
+          saldoEntradas.push({ cantidad: cantE, precio: puE });
+          totalExistencias += cantE;
+        }
+
+        const motivoS = fila.querySelector(".motivoSalida").value;
+        const cantS = parseFloat(fila.querySelector(".cantidadSalida").value) || 0;
+        const descripcionS = fila.querySelector(".descripcionSalida");
+
+        if (motivoS === "Venta" || motivoS === "Devolución sobre venta") {
+          let restante = cantS;
+          let totalVenta = 0;
+          let info = [];
+          for (let i = 0; i < saldoEntradas.length && restante > 0; i++) {
+            const lote = saldoEntradas[i];
+            if (lote.cantidad > 0) {
+              const usar = Math.min(lote.cantidad, restante);
+              totalVenta += usar * lote.precio;
+              info.push(`${usar} de ${lote.precio}`);
+              lote.cantidad -= usar;
+              restante -= usar;
+            }
+          }
+          fila.querySelector(".precioSalida").value = (totalVenta / cantS).toFixed(2);
+          fila.querySelector(".totalSalida").value = totalVenta.toFixed(2);
+          descripcionS.value = info.join(" + ");
+          totalExistencias -= cantS;
+        }
+
+        fila.querySelector(".existencias").value = totalExistencias;
+        fila.querySelector(".saldoSalida").value = saldoEntradas.map(e => `${e.precio}-${e.cantidad}`).join(" | ");
       });
-    });
-  }
-
-  function actualizarTabla() {
-    let existenciaAcumulada = 0;
-    const filas = document.querySelectorAll("#tablaPEPS tbody tr");
-    filas.forEach(fila => {
-      const cantidad = parseFloat(fila.querySelector(".cantidad")?.value || 0);
-      const precio = parseFloat(fila.querySelector(".precio")?.value || 0);
-      const movimiento = fila.querySelector("select")?.value;
-      const total = fila.querySelector(".total");
-      const existencia = fila.querySelector(".existencia");
-
-      total.value = (cantidad * precio).toFixed(2);
-
-      if (movimiento === "Compra") {
-        existenciaAcumulada += cantidad;
-      } else if (movimiento === "Venta") {
-        existenciaAcumulada -= cantidad;
-      }
-
-      existencia.value = existenciaAcumulada;
-    });
-  }
-
-  aplicarEventos();
-</script>
+    }
+  </script>
 </body>
 </html>
