@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>HatYork - Control de Inventario</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; background: #f9f9f9; }
+    h1 { color: #1a1a1a; }
+    nav a { display: block; margin: 10px 0; text-decoration: none; color: #007acc; }
+    section { display: none; margin-top: 30px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #aaa; padding: 8px; text-align: center; }
+    .active { display: block; }
+  </style>
+</head>
+<body>
+  <h1>HatYork - Sistema de Control de Inventarios</h1>
+  <nav>
+    <a href="#" onclick="mostrar('introduccion')">Introducción</a>
+    <a href="#" onclick="mostrar('operaciones')">Operaciones Contables</a>
+    <a href="#" onclick="mostrar('peps')">Inventario PEPS</a>
+    <a href="#" onclick="mostrar('stock')">Stock de Mercancía</a>
+    <a href="#" onclick="mostrar('utilidad')">Utilidad Bruta</a>
+    <a href="#" onclick="mostrar('conclusion')">Conclusión</a>
+  </nav>
+
+  <section id="introduccion">
+    <h2>Introducción</h2>
+    <p>Este sistema se basa en el <strong>Método Perpetuo</strong> para el registro de mercancías y en la <strong>Valoración PEPS</strong> para determinar el valor del inventario. Es ideal para empresas como HatYork, que manejan stock físico en alta rotación.</p>
+  </section>
+
+  <section id="operaciones">
+    <h2>Operaciones Contables</h2>
+    <table>
+      <tr><th>Cuenta</th><th>Debe</th><th>Haber</th></tr>
+      <tr><td>Ventas</td><td> - </td><td> $10,000 </td></tr>
+      <tr><td>Inventario</td><td> $6,000 </td><td> - </td></tr>
+    </table>
+  </section>
+
+  <section id="peps">
+    <h2>Inventario PEPS</h2>
+    <table>
+      <tr><th>Fecha</th><th>Movimiento</th><th>Cantidad</th><th>Precio Unitario</th><th>Total</th><th>Existencia</th></tr>
+      <tr><td>2025-05-01</td><td>Compra</td><td>100</td><td>50</td><td>5,000</td><td>100</td></tr>
+      <tr><td>2025-05-10</td><td>Venta</td><td>30</td><td>50</td><td>1,500</td><td>70</td></tr>
+    </table>
+  </section>
+
+  <section id="stock">
+    <h2>Stock de Mercancía</h2>
+    <table>
+      <tr><th>Producto</th><th>Existencia</th><th>Valor Total</th></tr>
+      <tr><td>Gorra clásica</td><td>70</td><td>$3,500</td></tr>
+    </table>
+  </section>
+
+  <section id="utilidad">
+    <h2>Utilidad Bruta</h2>
+    <p>Ingresos por ventas: <strong>$10,000</strong></p>
+    <p>Costo de ventas: <strong>$6,000</strong></p>
+    <p>Utilidad bruta: <strong>$4,000</strong></p>
+  </section>
+
+  <section id="conclusion">
+    <h2>Conclusión</h2>
+    <p>Un buen sistema de control de inventarios como el método PEPS permite una gestión eficiente del stock, evitando pérdidas, y facilita una toma de decisiones basada en datos precisos. HatYork mejora su operatividad gracias a este control.</p>
+  </section>
+
+  <script>
+    function mostrar(id) {
+      document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+  </script>
+</body>
+</html>
