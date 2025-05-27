@@ -6,78 +6,115 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f8f8f8;
+      margin: 0;
+      background-color: #f0f0f0;
     }
-    h1, h2 {
-      color: #333;
+    nav {
+      background-color: #004d73;
+      color: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 15px 0;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    section {
+      display: none;
+      padding: 20px;
+    }
+    section.active {
+      display: block;
     }
     table {
       border-collapse: collapse;
       width: 100%;
-      margin-bottom: 20px;
+      margin-top: 20px;
+      background: white;
     }
     th, td {
-      border: 1px solid #ccc;
+      border: 1px solid #999;
       padding: 8px;
       text-align: center;
     }
     th {
-      background-color: #e0e0e0;
+      background-color: #d9d9d9;
     }
-    input[type="number"], input[type="text"] {
-      width: 100%;
+    input, select {
+      margin: 5px;
       padding: 5px;
-      box-sizing: border-box;
     }
     button {
       padding: 10px 20px;
+      margin: 10px 0;
       background-color: #007acc;
       color: white;
       border: none;
       cursor: pointer;
     }
     button:hover {
-      background-color: #005f99;
+      background-color: #005fa3;
     }
   </style>
 </head>
 <body>
-  <h1>Cardex Interactivo - Valoración Ponderada</h1>
+  <nav>
+    <a href="#" onclick="mostrar('operacion')">Ingresar Operación</a>
+    <a href="#" onclick="mostrar('valoracion')">Valoración Ponderada</a>
+    <a href="#" onclick="mostrar('stock')">Stock de Mercancía</a>
+    <a href="#" onclick="mostrar('utilidad')">Utilidad Bruta</a>
+  </nav>
 
-  <h2>Ingresar Operación</h2>
-  <form id="operacionForm">
-    <label>Fecha: <input type="text" id="fecha"></label>
-    <label>Tipo: 
+  <section id="operacion" class="active">
+    <h2>Ingresar Operación</h2>
+    <form id="form">
+      <input type="text" id="fecha" placeholder="Fecha">
       <select id="tipo">
+        <option>Inventario inicial</option>
         <option>Compra</option>
         <option>Venta</option>
         <option>Devolución sobre venta</option>
         <option>Devolución sobre compra</option>
       </select>
-    </label>
-    <label>Descripción: <input type="text" id="descripcion"></label>
-    <label>Cantidad: <input type="number" id="cantidad"></label>
-    <label>Precio Unitario: <input type="number" id="precio"></label>
-    <button type="submit">Agregar</button>
-  </form>
+      <input type="text" id="descripcion" placeholder="Descripción">
+      <input type="number" id="cantidad" placeholder="Cantidad">
+      <input type="number" id="precio" placeholder="Precio Unitario">
+      <button type="submit">Agregar</button>
+    </form>
+  </section>
 
-  <h2>Tabla de Valoración</h2>
-  <table id="tabla">
-    <thead>
-      <tr>
-        <th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Cantidad</th><th>C.U</th><th>Total</th><th>Existencias</th><th>Valor Final</th><th>Costo Promedio</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <section id="valoracion">
+    <h2>Tabla de Valoración Ponderada</h2>
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Cantidad</th><th>C.U</th><th>Total</th><th>Existencias</th><th>Valor Final</th><th>Costo Promedio</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="stock">
+    <h2>Stock de Mercancía</h2>
+    <p id="stockInfo">No hay datos aún.</p>
+  </section>
+
+  <section id="utilidad">
+    <h2>Utilidad Bruta</h2>
+    <p id="utilidadInfo">No hay datos aún.</p>
+  </section>
 
   <script>
-    const form = document.getElementById('operacionForm');
-    const tbody = document.querySelector('#tabla tbody');
-
     let existencias = 0;
     let valorFinal = 0;
+    let ventasTotales = 0;
+    let costoDeVentas = 0;
+
+    const form = document.getElementById('form');
+    const tabla = document.querySelector('#tabla tbody');
 
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -88,16 +125,19 @@
       const cantidad = parseFloat(document.getElementById('cantidad').value);
       const precio = parseFloat(document.getElementById('precio').value);
 
-      let total = 0;
-      let operacion = tipo.toLowerCase();
+      const esEntrada = tipo === "Compra" || tipo === "Inventario inicial" || tipo === "Devolución sobre venta";
+      const esSalida = tipo === "Venta" || tipo === "Devolución sobre compra";
 
-      if (operacion === 'compra' || operacion === 'devolución sobre venta') {
+      let total = 0;
+      if (esEntrada) {
         total = cantidad * precio;
         existencias += cantidad;
         valorFinal += total;
-      } else if (operacion === 'venta' || operacion === 'devolución sobre compra') {
-        const costoPromedio = valorFinal / existencias || 0;
+      } else if (esSalida) {
+        const costoPromedio = valorFinal / existencias;
         total = cantidad * costoPromedio;
+        ventasTotales += (tipo === "Venta") ? cantidad * precio : 0;
+        costoDeVentas += total;
         existencias -= cantidad;
         valorFinal -= total;
       }
@@ -106,20 +146,20 @@
 
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${fecha}</td>
-        <td>${tipo}</td>
-        <td>${descripcion}</td>
-        <td>${cantidad}</td>
-        <td>$${precio.toFixed(2)}</td>
-        <td>$${(tipo === 'Venta' || tipo === 'Devolución sobre compra' ? total : cantidad * precio).toFixed(2)}</td>
-        <td>${existencias}</td>
-        <td>$${valorFinal.toFixed(2)}</td>
-        <td>$${costoPromedioFinal.toFixed(2)}</td>
+        <td>${fecha}</td><td>${tipo}</td><td>${descripcion}</td><td>${cantidad}</td><td>$${precio.toFixed(2)}</td><td>$${total.toFixed(2)}</td><td>${existencias}</td><td>$${valorFinal.toFixed(2)}</td><td>$${costoPromedioFinal.toFixed(2)}</td>
       `;
+      tabla.appendChild(row);
 
-      tbody.appendChild(row);
+      document.getElementById('stockInfo').innerText = `Cantidad: ${existencias} unidades | Valor: $${valorFinal.toFixed(2)} | Promedio: $${costoPromedioFinal.toFixed(2)}`;
+      document.getElementById('utilidadInfo').innerText = `Ventas netas: $${ventasTotales.toFixed(2)} | Costo de ventas: $${costoDeVentas.toFixed(2)} | Utilidad bruta: $${(ventasTotales - costoDeVentas).toFixed(2)}`;
+
       form.reset();
     });
+
+    function mostrar(id) {
+      document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
   </script>
 </body>
 </html>
