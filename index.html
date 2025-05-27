@@ -2,137 +2,124 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Cardex de Inventario</title>
+  <title>Cardex - Valoración Ponderada</title>
   <style>
-    body { font-family: Arial; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #aaa; padding: 8px; text-align: center; }
-    select, input { padding: 5px; }
-    button { margin-top: 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f8f8f8;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #e0e0e0;
+    }
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005f99;
+    }
   </style>
 </head>
 <body>
-  <h2>Seleccione el método de inventario perpetuo:</h2>
-  <form id="metodoForm">
-    <label><input type="radio" name="metodo" value="PEPS"> PEPS</label>
-    <label><input type="radio" name="metodo" value="UEPS"> UEPS</label>
-    <label><input type="radio" name="metodo" value="VALORACION"> Valoración ponderada</label>
-    <button type="button" onclick="mostrarTabla()">Continuar</button>
+  <h1>Cardex Interactivo - Valoración Ponderada</h1>
+
+  <h2>Ingresar Operación</h2>
+  <form id="operacionForm">
+    <label>Fecha: <input type="text" id="fecha"></label>
+    <label>Tipo: 
+      <select id="tipo">
+        <option>Compra</option>
+        <option>Venta</option>
+        <option>Devolución sobre venta</option>
+        <option>Devolución sobre compra</option>
+      </select>
+    </label>
+    <label>Descripción: <input type="text" id="descripcion"></label>
+    <label>Cantidad: <input type="number" id="cantidad"></label>
+    <label>Precio Unitario: <input type="number" id="precio"></label>
+    <button type="submit">Agregar</button>
   </form>
 
-  <div id="tablaResultado"></div>
+  <h2>Tabla de Valoración</h2>
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Cantidad</th><th>C.U</th><th>Total</th><th>Existencias</th><th>Valor Final</th><th>Costo Promedio</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <script>
-    function mostrarTabla() {
-      const metodo = document.querySelector('input[name="metodo"]:checked');
-      if (!metodo) return alert("Seleccione un método");
+    const form = document.getElementById('operacionForm');
+    const tbody = document.querySelector('#tabla tbody');
 
-      let html = "";
-      if (metodo.value === "VALORACION") {
-        html += `
-          <h3>Valoración ponderada</h3>
-          <table id="tablaValoracion">
-            <tr>
-              <th>Fecha</th><th>Operación</th><th>Descripción</th><th>Cantidad</th>
-              <th>Precio Unitario</th><th>Total</th><th>Costo de Ventas</th>
-              <th>Existencias</th><th>Valor Final</th>
-            </tr>
-            ${filaValoracion()}
-          </table>
-          <button onclick="agregarFilaValoracion()">+ Añadir fila</button>
-        `;
-      } else {
-        html += `<p>Modo no soportado aún</p>`;
+    let existencias = 0;
+    let valorFinal = 0;
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const fecha = document.getElementById('fecha').value;
+      const tipo = document.getElementById('tipo').value;
+      const descripcion = document.getElementById('descripcion').value;
+      const cantidad = parseFloat(document.getElementById('cantidad').value);
+      const precio = parseFloat(document.getElementById('precio').value);
+
+      let total = 0;
+      let operacion = tipo.toLowerCase();
+
+      if (operacion === 'compra' || operacion === 'devolución sobre venta') {
+        total = cantidad * precio;
+        existencias += cantidad;
+        valorFinal += total;
+      } else if (operacion === 'venta' || operacion === 'devolución sobre compra') {
+        const costoPromedio = valorFinal / existencias || 0;
+        total = cantidad * costoPromedio;
+        existencias -= cantidad;
+        valorFinal -= total;
       }
-      document.getElementById("tablaResultado").innerHTML = html;
-      agregarCalculos();
-    }
 
-    function filaValoracion() {
-      return `<tr>
-        <td><input type="date"></td>
-        <td>
-          <select>
-            <option>Compra</option>
-            <option>Venta</option>
-            <option>Devolución sobre compra</option>
-            <option>Devolución sobre venta</option>
-            <option>Inventario inicial</option>
-          </select>
-        </td>
-        <td><input type="text"></td>
-        <td><input type="number" class="cantidad"></td>
-        <td><input type="number" class="precio"></td>
-        <td><input type="number" class="total" readonly></td>
-        <td><input type="number" class="costo"></td>
-        <td><input type="number" class="existencia"></td>
-        <td><input type="number" class="valorFinal" readonly></td>
-      </tr>`;
-    }
+      const costoPromedioFinal = valorFinal / existencias || 0;
 
-    function agregarFilaValoracion() {
-      document.getElementById("tablaValoracion").insertAdjacentHTML('beforeend', filaValoracion());
-      agregarCalculos();
-    }
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${fecha}</td>
+        <td>${tipo}</td>
+        <td>${descripcion}</td>
+        <td>${cantidad}</td>
+        <td>$${precio.toFixed(2)}</td>
+        <td>$${(tipo === 'Venta' || tipo === 'Devolución sobre compra' ? total : cantidad * precio).toFixed(2)}</td>
+        <td>${existencias}</td>
+        <td>$${valorFinal.toFixed(2)}</td>
+        <td>$${costoPromedioFinal.toFixed(2)}</td>
+      `;
 
-    function agregarCalculos() {
-      const rows = document.querySelectorAll("#tablaValoracion tr");
-      rows.forEach(row => {
-        row.querySelectorAll("input, select").forEach(input => {
-          input.addEventListener("input", () => calcularValoracion());
-        });
-      });
-    }
-
-    function calcularValoracion() {
-      const rows = document.querySelectorAll("#tablaValoracion tr");
-      let acumuladoExistencias = 0;
-      let acumuladoValorFinal = 0;
-      let ultimoPrecioUnitario = 0;
-
-      rows.forEach((row, index) => {
-        if (index === 0) return;
-        const cantidad = parseFloat(row.querySelector(".cantidad")?.value || 0);
-        const precioInput = row.querySelector(".precio");
-        let precio = parseFloat(precioInput?.value || 0);
-        const operacion = row.querySelector("select")?.value;
-        const totalField = row.querySelector(".total");
-        const existenciaField = row.querySelector(".existencia");
-        const valorFinalField = row.querySelector(".valorFinal");
-
-        if (["Venta", "Devolución sobre compra", "Devolución sobre venta"].includes(operacion)) {
-          if (precioInput && ultimoPrecioUnitario > 0) {
-            precioInput.value = ultimoPrecioUnitario.toFixed(2);
-            precio = ultimoPrecioUnitario;
-          }
-        }
-
-        const total = cantidad * precio;
-        if (totalField) totalField.value = total.toFixed(2);
-
-        if (["Inventario inicial", "Compra", "Devolución sobre venta"].includes(operacion)) {
-          acumuladoExistencias += cantidad;
-          acumuladoValorFinal += total;
-        } else if (["Venta", "Devolución sobre compra"].includes(operacion)) {
-          acumuladoExistencias -= cantidad;
-          acumuladoValorFinal -= total;
-        }
-
-        if (existenciaField) existenciaField.value = acumuladoExistencias;
-        if (valorFinalField) valorFinalField.value = acumuladoValorFinal.toFixed(2);
-
-        if (["Inventario inicial", "Compra"].includes(operacion) && cantidad > 0) {
-          ultimoPrecioUnitario = precio;
-        }
-
-        if (operacion === "Venta" && cantidad > 0 && acumuladoExistencias > 0) {
-          const precioUnitario = acumuladoValorFinal / acumuladoExistencias;
-          ultimoPrecioUnitario = precioUnitario;
-          if (precioInput) precioInput.value = precioUnitario.toFixed(2);
-          if (totalField) totalField.value = (cantidad * precioUnitario).toFixed(2);
-        }
-      });
-    }
+      tbody.appendChild(row);
+      form.reset();
+    });
   </script>
 </body>
 </html>
