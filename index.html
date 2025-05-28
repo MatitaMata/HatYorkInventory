@@ -14,7 +14,7 @@
       justify-content: center;
       gap: 20px;
       flex-wrap: wrap;
-      padding: 20px;
+      padding: 50px 20px;
     }
     .menu-icons img {
       width: 150px;
@@ -84,17 +84,152 @@
 </head>
 <body>
   <div class="menu-icons">
-    <img src="https://raw.githubusercontent.com/MatitaMata/HatYorkInventory/main/ingresar-operacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
-    <img src="https://raw.githubusercontent.com/MatitaMata/HatYorkInventory/main/registro-operaciones.png" alt="Registro de Operaciones" onclick="mostrar('registro')">
-    <img src="https://raw.githubusercontent.com/MatitaMata/HatYorkInventory/main/valoracion-ponderada.png" alt="Valoración Ponderada" onclick="mostrar('valoracion')">
-    <img src="https://raw.githubusercontent.com/MatitaMata/HatYorkInventory/main/stock-mercancia.png" alt="Stock de Mercancía" onclick="mostrar('stock')">
-    <img src="https://raw.githubusercontent.com/MatitaMata/HatYorkInventory/main/utilidad-bruta.png" alt="Utilidad Bruta" onclick="mostrar('utilidad')">
+    <img src="AgregarOperación.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
+    <img src="ValoraciónPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
+    <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
+    <img src="StockMercancía.png" alt="Stock" onclick="mostrar('stock')">
+    <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
   </div>
 
-  <!-- Las secciones permanecen igual -->
-  <!-- [omitir contenido previo por brevedad, reutilizar estructura ya generada] -->
+  <section id="operacion" class="active">
+    <h2>Ingresar Operación</h2>
+    <form id="form">
+      <input type="text" id="fecha" placeholder="Fecha">
+      <select id="tipo">
+        <option>Inventario inicial</option>
+        <option>Compra</option>
+        <option>Venta</option>
+        <option>Devolución sobre venta</option>
+        <option>Devolución sobre compra</option>
+      </select>
+      <input type="text" id="descripcion" placeholder="Descripción">
+      <input type="number" id="cantidad" placeholder="Cantidad">
+      <input type="number" id="precio" placeholder="Precio Unitario">
+      <button type="submit">Agregar</button>
+    </form>
+  </section>
+
+  <section id="valoracion">
+    <h2>Tabla de Valoración Ponderada</h2>
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Cantidad</th><th>C.U</th><th>Total</th><th>Existencias</th><th>Valor Final</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section id="registro">
+    <h2>Registro de Operaciones (Cuentas T)</h2>
+    <div class="t-account" id="cuentasT"></div>
+  </section>
+
+  <section id="stock">
+    <h2>Stock de Mercancía</h2>
+    <p id="stockInfo">No hay datos aún.</p>
+  </section>
+
+  <section id="utilidad">
+    <h2>Utilidad Bruta</h2>
+    <p id="utilidadInfo">No hay datos aún.</p>
+  </section>
 
   <script>
+    let existencias = 0;
+    let valorFinal = 0;
+    let ventasTotales = 0;
+    let costoDeVentas = 0;
+
+    const form = document.getElementById('form');
+    const tabla = document.querySelector('#tabla tbody');
+    const cuentasT = document.getElementById('cuentasT');
+
+    let cuentas = {
+      Capital: [],
+      Caja: [],
+      Banco: [],
+      Almacen: [],
+      Proveedores: [],
+      Ventas: [],
+      'Costo de Ventas': [],
+      'Devolución / Compra': [],
+      'Devolución / Venta': []
+    };
+
+    function agregarMovimiento(cuenta, valor) {
+      cuentas[cuenta] = cuentas[cuenta] || [];
+      cuentas[cuenta].push(valor);
+    }
+
+    function actualizarCuentas() {
+      cuentasT.innerHTML = '';
+      for (const cuenta in cuentas) {
+        const div = document.createElement('div');
+        div.className = 't-box';
+        div.innerHTML = `<h4>${cuenta}</h4>` + cuentas[cuenta].map(val => `<p>${val}</p>`).join('');
+        cuentasT.appendChild(div);
+      }
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const fecha = document.getElementById('fecha').value;
+      const tipo = document.getElementById('tipo').value;
+      const descripcion = document.getElementById('descripcion').value;
+      const cantidad = parseFloat(document.getElementById('cantidad').value);
+      const precio = parseFloat(document.getElementById('precio').value);
+
+      const esEntrada = tipo === "Compra" || tipo === "Inventario inicial" || tipo === "Devolución sobre venta";
+      const esSalida = tipo === "Venta" || tipo === "Devolución sobre compra";
+
+      let total = 0;
+      if (esEntrada) {
+        total = cantidad * precio;
+        existencias += cantidad;
+        valorFinal += total;
+        if (tipo === "Compra") {
+          agregarMovimiento("Almacen", `+$${total}`);
+          agregarMovimiento("Proveedores", `+$${total}`);
+        } else if (tipo === "Inventario inicial") {
+          agregarMovimiento("Almacen", `+$${total}`);
+          agregarMovimiento("Capital", `+$${total}`);
+        } else if (tipo === "Devolución sobre venta") {
+          agregarMovimiento("Almacen", `+$${total}`);
+          agregarMovimiento("Devolución / Venta", `+$${total}`);
+        }
+      } else if (esSalida) {
+        const costoPromedio = valorFinal / existencias;
+        total = cantidad * costoPromedio;
+        ventasTotales += (tipo === "Venta") ? cantidad * precio : 0;
+        costoDeVentas += total;
+        existencias -= cantidad;
+        valorFinal -= total;
+        if (tipo === "Venta") {
+          agregarMovimiento("Ventas", `+$${cantidad * precio}`);
+          agregarMovimiento("Costo de Ventas", `+$${total}`);
+          agregarMovimiento("Almacen", `-$${total}`);
+        } else if (tipo === "Devolución sobre compra") {
+          agregarMovimiento("Almacen", `-$${total}`);
+          agregarMovimiento("Devolución / Compra", `+$${total}`);
+        }
+      }
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${fecha}</td><td>${tipo}</td><td>${descripcion}</td><td>${cantidad}</td><td>$${precio.toFixed(2)}</td><td>$${(cantidad * precio).toFixed(2)}</td><td>${existencias}</td><td>$${valorFinal.toFixed(2)}</td>
+      `;
+      tabla.appendChild(row);
+
+      document.getElementById('stockInfo').innerText = `Cantidad: ${existencias} unidades | Valor: $${valorFinal.toFixed(2)}`;
+      document.getElementById('utilidadInfo').innerText = `Ventas netas: $${ventasTotales.toFixed(2)} | Costo de ventas: $${costoDeVentas.toFixed(2)} | Utilidad bruta: $${(ventasTotales - costoDeVentas).toFixed(2)}`;
+
+      actualizarCuentas();
+      form.reset();
+    });
+
     function mostrar(id) {
       document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -102,5 +237,6 @@
   </script>
 </body>
 </html>
+
 
 
