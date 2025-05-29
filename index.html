@@ -80,13 +80,14 @@
       margin: 4px 0;
       font-size: 14px;
     }
-    .footer-icons {
-      margin-top: 50px;
+    .footer-icons, .menu-icons-fixed {
       display: flex;
       justify-content: center;
       gap: 20px;
+      margin-top: 40px;
+      flex-wrap: wrap;
     }
-    .footer-icons img {
+    .footer-icons img, .menu-icons-fixed img {
       width: 60px;
       height: 60px;
       cursor: pointer;
@@ -147,8 +148,6 @@
     </div>
   </section>
 
-  <!-- Las demás secciones (operacion, valoracion, registro, etc.) siguen después -->
-
   <section id="operacion">
     <h2>Ingresar Operación</h2>
     <form id="form">
@@ -165,6 +164,13 @@
       <input type="number" id="precio" placeholder="Precio Unitario">
       <button type="submit">Agregar</button>
     </form>
+    <div class="menu-icons-fixed">
+      <img src="AgregarOperacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
+      <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
+      <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
+      <img src="StockMercancia.png" alt="Stock" onclick="mostrar('stock')">
+      <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
+    </div>
   </section>
 
   <section id="valoracion">
@@ -177,21 +183,49 @@
       </thead>
       <tbody></tbody>
     </table>
+    <div class="menu-icons-fixed">
+      <img src="AgregarOperacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
+      <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
+      <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
+      <img src="StockMercancia.png" alt="Stock" onclick="mostrar('stock')">
+      <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
+    </div>
   </section>
 
   <section id="registro">
     <h2>Registro de Operaciones (Cuentas T)</h2>
     <div class="t-account" id="cuentasT"></div>
+    <div class="menu-icons-fixed">
+      <img src="AgregarOperacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
+      <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
+      <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
+      <img src="StockMercancia.png" alt="Stock" onclick="mostrar('stock')">
+      <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
+    </div>
   </section>
 
   <section id="stock">
     <h2>Stock de Mercancía</h2>
     <p id="stockInfo">No hay datos aún.</p>
+    <div class="menu-icons-fixed">
+      <img src="AgregarOperacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
+      <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
+      <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
+      <img src="StockMercancia.png" alt="Stock" onclick="mostrar('stock')">
+      <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
+    </div>
   </section>
 
   <section id="utilidad">
     <h2>Utilidad Bruta</h2>
     <p id="utilidadInfo">No hay datos aún.</p>
+    <div class="menu-icons-fixed">
+      <img src="AgregarOperacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
+      <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
+      <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
+      <img src="StockMercancia.png" alt="Stock" onclick="mostrar('stock')">
+      <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
+    </div>
   </section>
 
   <script>
@@ -202,6 +236,7 @@
   </script>
 </body>
 </html>
+
 
 
 
