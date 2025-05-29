@@ -169,11 +169,11 @@
       } else {
         precioInput.value = "";
       }
-      precioInput.readOnly = esAutomatico;
+      precioInput.readOnly = esAutomatico ? true : false;
     }
 
     tipoInput.addEventListener("change", e => ajustarPrecio(e.target.value));
-    ajustarPrecio(tipoInput.value);
+    window.addEventListener("DOMContentLoaded", () => ajustarPrecio(tipoInput.value));
 
     function agregarMovimiento(cuenta, valor) {
       cuentas[cuenta] = cuentas[cuenta] || [];
@@ -260,4 +260,5 @@
   </script>
 </body>
 </html>
+
 
