@@ -95,7 +95,7 @@
     <h2>Ingresar Operación</h2>
     <form id="form">
       <input type="text" id="fecha" placeholder="Fecha">
-      <select id="tipo" onchange="ajustarPrecio(this.value)">
+      <select id="tipo">
         <option>Inventario inicial</option>
         <option>Compra</option>
         <option>Venta</option>
@@ -104,7 +104,7 @@
       </select>
       <input type="text" id="descripcion" placeholder="Descripción">
       <input type="number" id="cantidad" placeholder="Cantidad">
-      <input type="number" id="precio" placeholder="Precio Unitario" readonly>
+      <input type="number" id="precio" placeholder="Precio Unitario">
       <button type="submit">Agregar</button>
     </form>
   </section>
@@ -171,6 +171,9 @@
       }
       precioInput.readOnly = esAutomatico;
     }
+
+    tipoInput.addEventListener("change", e => ajustarPrecio(e.target.value));
+    ajustarPrecio(tipoInput.value);
 
     function agregarMovimiento(cuenta, valor) {
       cuentas[cuenta] = cuentas[cuenta] || [];
@@ -257,3 +260,4 @@
   </script>
 </body>
 </html>
+
