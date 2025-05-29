@@ -147,180 +147,105 @@
     </div>
   </section>
 
-  <section id="operacion">
-    <h2>Ingresar Operación</h2>
-    <form id="form">
-      <input type="text" id="fecha" placeholder="Fecha">
-      <select id="tipo">
-        <option>Inventario inicial</option>
-        <option>Compra</option>
-        <option>Venta</option>
-        <option>Devolución sobre venta</option>
-        <option>Devolución sobre compra</option>
-      </select>
-      <input type="text" id="descripcion" placeholder="Descripción">
-      <input type="number" id="cantidad" placeholder="Cantidad">
-      <input type="number" id="precio" placeholder="Precio Unitario">
-      <button type="submit">Agregar</button>
-    </form>
-    <div class="footer-icons">
-      <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
-    </div>
-  </section>
+ <script>
+  let existencias = 0;
+  let valorFinal = 0;
+  let ventasTotales = 0;
+  let costoDeVentas = 0;
 
-  <section id="valoracion">
-    <h2>Tabla de Valoración Ponderada</h2>
-    <table id="tabla">
-      <thead>
-        <tr>
-          <th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Cantidad</th><th>C.U</th><th>Total</th><th>Existencias</th><th>Valor Final</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <div class="footer-icons">
-      <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
-    </div>
-  </section>
+  const cuentas = {
+    Capital: [],
+    Caja: [],
+    Banco: [],
+    Almacen: [],
+    Proveedores: [],
+    Ventas: [],
+    "Costo de Ventas": [],
+    "Devolución / Compra": [],
+    "Devolución / Venta": []
+  };
 
-  <section id="registro">
-    <h2>Registro de Operaciones (Cuentas T)</h2>
-    <div class="t-account" id="cuentasT"></div>
-    <div class="footer-icons">
-      <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
-    </div>
-    <div class="t-account" id="cuentasT"></div>
-  </section>
-
-  <section id="stock">
-    <h2>Stock de Mercancía</h2>
-    <p id="stockInfo">No hay datos aún.</p>
-    <div class="footer-icons">
-      <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
-    </div>
-  </section>
-
-  <section id="utilidad">
-    <h2>Utilidad Bruta</h2>
-    <p id="utilidadInfo">No hay datos aún.</p>
-    <div class="footer-icons">
-      <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
-    </div>
-  </section>
-
-  <script>
-    let existencias = 0;
-    let valorFinal = 0;
-    let ventasTotales = 0;
-    let costoDeVentas = 0;
-
-let cuentas = {
-  Capital: [],
-  Caja: [],
-  Banco: [],
-  Almacen: [],
-  Proveedores: [],
-  Ventas: [],
-  "Costo de Ventas": [],
-  "Devolución / Compra": [],
-  "Devolución / Venta": []
-};
-
-function agregarMovimiento(cuenta, valor) {
-  cuentas[cuenta] = cuentas[cuenta] || [];
-  cuentas[cuenta].push(valor);
-}
-
-function actualizarCuentas() {
-  cuentasT.innerHTML = '';
-  for (const cuenta in cuentas) {
-    const div = document.createElement('div');
-    div.className = 't-box';
-    div.innerHTML = `<h4>${cuenta}</h4>` + cuentas[cuenta].map(val => `<p>${val}</p>`).join('');
-    cuentasT.appendChild(div);
+  function mostrar(id) {
+    document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
   }
-}
 
-agregarMovimiento("Capital", "$100,000");
-actualizarCuentas();
-    
-    function mostrar(id) {
-      document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
+  function agregarMovimiento(cuenta, valor) {
+    cuentas[cuenta] = cuentas[cuenta] || [];
+    cuentas[cuenta].push(valor);
+  }
+
+  function actualizarCuentas() {
+    const cuentasT = document.getElementById('cuentasT');
+    cuentasT.innerHTML = '';
+    for (const cuenta in cuentas) {
+      const div = document.createElement('div');
+      div.className = 't-box';
+      div.innerHTML = `<h4>${cuenta}</h4>` + cuentas[cuenta].map(val => `<p>${val}</p>`).join('');
+      cuentasT.appendChild(div);
+    }
+  }
+
+  document.getElementById("form").addEventListener("submit", function (e) {
+    e.preventDefault(); // 👈 Esto evita la recarga
+
+    const fecha = document.getElementById("fecha").value;
+    const tipo = document.getElementById("tipo").value;
+    const descripcion = document.getElementById("descripcion").value;
+    const cantidad = parseFloat(document.getElementById("cantidad").value);
+    let precio = parseFloat(document.getElementById("precio").value);
+    let total = precio * cantidad;
+
+    if (tipo === "Venta" || tipo === "Devolución sobre venta") {
+      precio = valorFinal / existencias;
+      total = precio * cantidad;
     }
 
-    document.getElementById("tipo").addEventListener("change", function () {
-      const tipo = this.value;
-      const precio = document.getElementById("precio");
-
-      if (tipo === "Venta" || tipo === "Devolución sobre venta") {
-        precio.readOnly = true;
-        if (existencias > 0) {
-          const promedio = valorFinal / existencias;
-          precio.value = promedio.toFixed(2);
-        } else {
-          precio.value = "0.00";
-        }
-      } else if (tipo === "Devolución sobre compra") {
-        precio.readOnly = true;
-        const filas = document.querySelectorAll("#tabla tbody tr");
-        if (filas.length > 0) {
-          const ultimaFila = filas[filas.length - 1];
-          const cu = ultimaFila.children[4].textContent.replace("$", "");
-          precio.value = parseFloat(cu).toFixed(2);
-        }
-      } else {
-        precio.readOnly = false;
-        precio.value = "";
-      }
-    });
-
-    document.getElementById("form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const fecha = document.getElementById("fecha").value;
-      const tipo = document.getElementById("tipo").value;
-      const descripcion = document.getElementById("descripcion").value;
-      const cantidad = parseFloat(document.getElementById("cantidad").value);
-      let precio = parseFloat(document.getElementById("precio").value);
-      let total = precio * cantidad;
-
-      if (tipo === "Venta" || tipo === "Devolución sobre venta") {
-        precio = valorFinal / existencias;
+    if (tipo === "Devolución sobre compra") {
+      const filas = document.querySelectorAll("#tabla tbody tr");
+      if (filas.length > 0) {
+        const ultimaFila = filas[filas.length - 1];
+        precio = parseFloat(ultimaFila.children[4].textContent.replace("$", ""));
         total = precio * cantidad;
       }
+    }
 
-      if (tipo === "Devolución sobre compra") {
-        const filas = document.querySelectorAll("#tabla tbody tr");
-        if (filas.length > 0) {
-          const ultimaFila = filas[filas.length - 1];
-          precio = parseFloat(ultimaFila.children[4].textContent.replace("$", ""));
-          total = precio * cantidad;
-        }
-      }
+    // Actualización de inventario y cuentas
+    if (tipo === "Compra" || tipo === "Inventario inicial" || tipo === "Devolución sobre venta") {
+      existencias += cantidad;
+      valorFinal += total;
+    } else if (tipo === "Venta" || tipo === "Devolución sobre compra") {
+      existencias -= cantidad;
+      valorFinal -= total;
+    }
 
-      const nuevaFila = document.createElement("tr");
-      nuevaFila.innerHTML = `
-        <td>${fecha}</td>
-        <td>${tipo}</td>
-        <td>${descripcion}</td>
-        <td>${cantidad}</td>
-        <td>$${precio.toFixed(2)}</td>
-        <td>$${total.toFixed(2)}</td>
-        <td>${existencias += tipo === "Venta" || tipo === "Devolución sobre compra" ? -cantidad : cantidad}</td>
-        <td>$${valorFinal = tipo === "Venta" || tipo === "Devolución sobre compra" ? valorFinal - total : valorFinal + total, valorFinal.toFixed(2)}</td>
-      `;
+    ventasTotales += tipo === "Venta" ? total : 0;
+    costoDeVentas += tipo === "Venta" ? total : 0;
 
-      document.querySelector("#tabla tbody").appendChild(nuevaFila);
-      ventasTotales += tipo === "Venta" ? total : 0;
-      costoDeVentas += tipo === "Venta" ? total : 0;
+    const nuevaFila = document.createElement("tr");
+    nuevaFila.innerHTML = `
+      <td>${fecha}</td>
+      <td>${tipo}</td>
+      <td>${descripcion}</td>
+      <td>${cantidad}</td>
+      <td>$${precio.toFixed(2)}</td>
+      <td>$${total.toFixed(2)}</td>
+      <td>${existencias}</td>
+      <td>$${valorFinal.toFixed(2)}</td>
+    `;
+    document.querySelector("#tabla tbody").appendChild(nuevaFila);
 
-      document.getElementById("stockInfo").innerText = `Cantidad: ${existencias} unidades | Valor: $${valorFinal.toFixed(2)}`;
-      document.getElementById("utilidadInfo").innerText = `Ventas netas: $${ventasTotales.toFixed(2)} | Costo de ventas: $${costoDeVentas.toFixed(2)} | Utilidad bruta: $${(ventasTotales - costoDeVentas).toFixed(2)}`;
+    document.getElementById("stockInfo").innerText =
+      `Cantidad: ${existencias} unidades | Valor: $${valorFinal.toFixed(2)}`;
+    document.getElementById("utilidadInfo").innerText =
+      `Ventas netas: $${ventasTotales.toFixed(2)} | Costo de ventas: $${costoDeVentas.toFixed(2)} | Utilidad bruta: $${(ventasTotales - costoDeVentas).toFixed(2)}`;
 
-      this.reset();
-      document.getElementById("tipo").dispatchEvent(new Event("change"));
-    });
-  </script>
+    actualizarCuentas();
+    this.reset();
+    document.getElementById("tipo").dispatchEvent(new Event("change"));
+  });
+
+</script>
 </body>
 </html>
 
