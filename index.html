@@ -80,18 +80,76 @@
       margin: 4px 0;
       font-size: 14px;
     }
+    .footer-icons {
+      margin-top: 50px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .footer-icons img {
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+    }
+    h1 {
+      font-size: 40px;
+      text-align: center;
+    }
+    .info-text {
+      text-align: center;
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
-  <div class="menu-icons">
-    <img src="AgregarOperacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
-    <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
-    <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
-    <img src="StockMercancia.png" alt="Stock" onclick="mostrar('stock')">
-    <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
-  </div>
+  <section id="portada" class="active">
+    <h1>Valoración de Inventario</h1>
+    <div class="footer-icons">
+      <img src="Introduccion.png" alt="Introducción" onclick="mostrar('introduccion')">
+      <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
+      <img src="Conclusion.png" alt="Conclusión" onclick="mostrar('conclusion')">
+    </div>
+  </section>
 
-  <section id="operacion" class="active">
+  <section id="introduccion">
+    <h2 style="text-align: center;">Introducción</h2>
+    <p class="info-text">Aquí va la información de introducción que tienes en la imagen.</p>
+    <div class="footer-icons">
+      <img src="Portada.png" alt="Portada" onclick="mostrar('portada')">
+      <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
+      <img src="Conclusion.png" alt="Conclusión" onclick="mostrar('conclusion')">
+    </div>
+  </section>
+
+  <section id="conclusion">
+    <h2 style="text-align: center;">Conclusión</h2>
+    <p class="info-text">Aquí va la información de la conclusión que tienes en la imagen.</p>
+    <div class="footer-icons">
+      <img src="Portada.png" alt="Portada" onclick="mostrar('portada')">
+      <img src="Introduccion.png" alt="Introducción" onclick="mostrar('introduccion')">
+      <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
+    </div>
+  </section>
+
+  <section id="menu">
+    <h1>Valoración de Inventario</h1>
+    <div class="menu-icons">
+      <img src="AgregarOperacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
+      <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
+      <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
+      <img src="StockMercancia.png" alt="Stock" onclick="mostrar('stock')">
+      <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
+    </div>
+    <div class="footer-icons">
+      <img src="Portada.png" alt="Portada" onclick="mostrar('portada')">
+      <img src="Introduccion.png" alt="Introducción" onclick="mostrar('introduccion')">
+      <img src="Conclusion.png" alt="Conclusión" onclick="mostrar('conclusion')">
+    </div>
+  </section>
+
+  <!-- Las demás secciones (operacion, valoracion, registro, etc.) siguen después -->
+
+  <section id="operacion">
     <h2>Ingresar Operación</h2>
     <form id="form">
       <input type="text" id="fecha" placeholder="Fecha">
@@ -137,129 +195,6 @@
   </section>
 
   <script>
-    let existencias = 0;
-    let valorFinal = 0;
-    let ventasTotales = 0;
-    let costoDeVentas = 0;
-
-    const form = document.getElementById('form');
-    const tabla = document.querySelector('#tabla tbody');
-    const cuentasT = document.getElementById('cuentasT');
-    const precioInput = document.getElementById('precio');
-    const tipoInput = document.getElementById('tipo');
-    const cantidadInput = document.getElementById('cantidad');
-
-    let cuentas = {
-      Capital: [],
-      Caja: [],
-      Banco: [],
-      Almacen: [],
-      Proveedores: [],
-      Ventas: [],
-      'Costo de Ventas': [],
-      'Devolución / Compra': [],
-      'Devolución / Venta': []
-    };
-
-    function ajustarPrecio(tipo) {
-      const esAutomatico = tipo === "Venta" || tipo === "Devolución sobre venta";
-      if (esAutomatico && existencias > 0) {
-        const promedio = valorFinal / existencias;
-        precioInput.value = promedio.toFixed(2);
-      } else {
-        precioInput.value = "";
-      }
-      precioInput.readOnly = esAutomatico;
-    }
-
-    tipoInput.addEventListener("change", e => ajustarPrecio(e.target.value));
-    window.addEventListener("DOMContentLoaded", () => ajustarPrecio(tipoInput.value));
-
-    function agregarMovimiento(cuenta, valor) {
-      cuentas[cuenta] = cuentas[cuenta] || [];
-      cuentas[cuenta].push(valor);
-    }
-
-    function actualizarCuentas() {
-      cuentasT.innerHTML = '';
-      for (const cuenta in cuentas) {
-        const div = document.createElement('div');
-        div.className = 't-box';
-        div.innerHTML = `<h4>${cuenta}</h4>` + cuentas[cuenta].map(val => `<p>${val}</p>`).join('');
-        cuentasT.appendChild(div);
-      }
-    }
-
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-
-      const fecha = document.getElementById('fecha').value;
-      const tipo = tipoInput.value;
-      const descripcion = document.getElementById('descripcion').value;
-      const cantidad = parseFloat(cantidadInput.value);
-      let precio = parseFloat(precioInput.value);
-
-      if ((tipo === "Venta" || tipo === "Devolución sobre compra") && cantidad > existencias) {
-        alert("No puedes realizar esta operación: cantidad supera las existencias disponibles.");
-        return;
-      }
-
-      const esEntrada = tipo === "Compra" || tipo === "Inventario inicial" || tipo === "Devolución sobre venta";
-      const esSalida = tipo === "Venta" || tipo === "Devolución sobre compra";
-
-      let total = 0;
-      if (esEntrada) {
-        total = cantidad * precio;
-        existencias += cantidad;
-        valorFinal += total;
-        if (tipo === "Compra") {
-          agregarMovimiento("Almacen", `+$${total}`);
-          agregarMovimiento("Proveedores", `+$${total}`);
-        } else if (tipo === "Inventario inicial") {
-          agregarMovimiento("Almacen", `+$${total}`);
-          agregarMovimiento("Capital", `+$${total}`);
-        } else if (tipo === "Devolución sobre venta") {
-          agregarMovimiento("Almacen", `+$${total}`);
-          agregarMovimiento("Devolución / Venta", `+$${total}`);
-        }
-      } else if (esSalida) {
-        precio = valorFinal / existencias;
-        total = cantidad * precio;
-        ventasTotales += (tipo === "Venta") ? cantidad * precio : 0;
-        costoDeVentas += total;
-        existencias -= cantidad;
-        valorFinal -= total;
-        if (tipo === "Venta") {
-          agregarMovimiento("Ventas", `+$${(cantidad * precio).toFixed(2)}`);
-          agregarMovimiento("Costo de Ventas", `+$${total.toFixed(2)}`);
-          agregarMovimiento("Almacen", `-$${total.toFixed(2)}`);
-        } else if (tipo === "Devolución sobre compra") {
-          agregarMovimiento("Almacen", `-$${total.toFixed(2)}`);
-          agregarMovimiento("Devolución / Compra", `+$${total.toFixed(2)}`);
-        }
-      }
-
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${fecha}</td>
-        <td>${tipo}</td>
-        <td>${descripcion}</td>
-        <td>${cantidad}</td>
-        <td>$${precio.toFixed(2)}</td>
-        <td>$${(cantidad * precio).toFixed(2)}</td>
-        <td>${existencias}</td>
-        <td>$${valorFinal.toFixed(2)}</td>
-      `;
-      tabla.appendChild(row);
-
-      document.getElementById('stockInfo').innerText = `Cantidad: ${existencias} unidades | Valor: $${valorFinal.toFixed(2)}`;
-      document.getElementById('utilidadInfo').innerText = `Ventas netas: $${ventasTotales.toFixed(2)} | Costo de ventas: $${costoDeVentas.toFixed(2)} | Utilidad bruta: $${(ventasTotales - costoDeVentas).toFixed(2)}`;
-
-      actualizarCuentas();
-      form.reset();
-      ajustarPrecio(tipoInput.value);
-    });
-
     function mostrar(id) {
       document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
       document.getElementById(id).classList.add('active');
