@@ -14,7 +14,7 @@
       justify-content: center;
       gap: 20px;
       flex-wrap: wrap;
-      padding: 20px;
+      padding: 50px 20px;
     }
     .menu-icons img {
       width: 150px;
@@ -30,7 +30,6 @@
     section {
       display: none;
       padding: 20px;
-      text-align: center;
     }
     section.active {
       display: block;
@@ -65,7 +64,6 @@
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
-      justify-content: center;
     }
     .t-box {
       border: 1px solid #333;
@@ -82,77 +80,33 @@
       margin: 4px 0;
       font-size: 14px;
     }
-    .nav-buttons {
-      margin-top: 50px;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-    }
-    .nav-buttons img {
-      width: 60px;
-      height: 60px;
-      cursor: pointer;
-      border-radius: 10px;
-      transition: transform 0.2s;
-    }
-    .nav-buttons img:hover {
-      transform: scale(1.1);
-    }
-    .title-principal {
-      font-size: 40px;
-      margin-bottom: 20px;
-    }
   </style>
 </head>
 <body>
-  <section id="portada" class="active">
-    <h1 class="title-principal">HatYork Inventory</h1>
-    <div class="nav-buttons">
-      <img src="Introduccion.png" onclick="mostrar('introduccion')" title="Introducción">
-      <img src="Menu.png" onclick="mostrar('menu')" title="Menú">
-      <img src="Conclusion.png" onclick="mostrar('conclusion')" title="Conclusión">
-    </div>
-  </section>
+  <div class="menu-icons">
+    <img src="AgregarOperacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
+    <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
+    <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
+    <img src="StockMercancia.png" alt="Stock" onclick="mostrar('stock')">
+    <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
+  </div>
 
-  <section id="introduccion">
-    <h2>Introducción</h2>
-    <p>Aquí va la información de introducción que tienes en la imagen.</p>
-    <div class="nav-buttons">
-      <img src="Portada.png" onclick="mostrar('portada')" title="Portada">
-      <img src="Menu.png" onclick="mostrar('menu')" title="Menú">
-      <img src="Conclusion.png" onclick="mostrar('conclusion')" title="Conclusión">
-    </div>
-  </section>
-
-  <section id="menu">
-    <h2 class="title-principal">Valoración de Inventario</h2>
-    <div class="menu-icons">
-      <img src="AgregarOperacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
-      <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
-      <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
-      <img src="StockMercancia.png" alt="Stock" onclick="mostrar('stock')">
-      <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
-    </div>
-    <div class="nav-buttons">
-      <img src="Portada.png" onclick="mostrar('portada')" title="Portada">
-      <img src="Introduccion.png" onclick="mostrar('introduccion')" title="Introducción">
-      <img src="Conclusion.png" onclick="mostrar('conclusion')" title="Conclusión">
-    </div>
-  </section>
-
-  <section id="conclusion">
-    <h2>Conclusión</h2>
-    <p>Aquí va la información de la conclusión que tienes en la imagen.</p>
-    <div class="nav-buttons">
-      <img src="Portada.png" onclick="mostrar('portada')" title="Portada">
-      <img src="Introduccion.png" onclick="mostrar('introduccion')" title="Introducción">
-      <img src="Menu.png" onclick="mostrar('menu')" title="Menú">
-    </div>
-  </section>
-
-  <section id="operacion">
+  <section id="operacion" class="active">
     <h2>Ingresar Operación</h2>
-    <!-- Formulario y tabla original se incluirán a continuación -->
+    <form id="form">
+      <input type="text" id="fecha" placeholder="Fecha">
+      <select id="tipo">
+        <option>Inventario inicial</option>
+        <option>Compra</option>
+        <option>Venta</option>
+        <option>Devolución sobre venta</option>
+        <option>Devolución sobre compra</option>
+      </select>
+      <input type="text" id="descripcion" placeholder="Descripción">
+      <input type="number" id="cantidad" placeholder="Cantidad">
+      <input type="number" id="precio" placeholder="Precio Unitario">
+      <button type="submit">Agregar</button>
+    </form>
   </section>
 
   <section id="valoracion">
@@ -183,6 +137,129 @@
   </section>
 
   <script>
+    let existencias = 0;
+    let valorFinal = 0;
+    let ventasTotales = 0;
+    let costoDeVentas = 0;
+
+    const form = document.getElementById('form');
+    const tabla = document.querySelector('#tabla tbody');
+    const cuentasT = document.getElementById('cuentasT');
+    const precioInput = document.getElementById('precio');
+    const tipoInput = document.getElementById('tipo');
+    const cantidadInput = document.getElementById('cantidad');
+
+    let cuentas = {
+      Capital: [],
+      Caja: [],
+      Banco: [],
+      Almacen: [],
+      Proveedores: [],
+      Ventas: [],
+      'Costo de Ventas': [],
+      'Devolución / Compra': [],
+      'Devolución / Venta': []
+    };
+
+    function ajustarPrecio(tipo) {
+      const esAutomatico = tipo === "Venta" || tipo === "Devolución sobre venta";
+      if (esAutomatico && existencias > 0) {
+        const promedio = valorFinal / existencias;
+        precioInput.value = promedio.toFixed(2);
+      } else {
+        precioInput.value = "";
+      }
+      precioInput.readOnly = esAutomatico;
+    }
+
+    tipoInput.addEventListener("change", e => ajustarPrecio(e.target.value));
+    window.addEventListener("DOMContentLoaded", () => ajustarPrecio(tipoInput.value));
+
+    function agregarMovimiento(cuenta, valor) {
+      cuentas[cuenta] = cuentas[cuenta] || [];
+      cuentas[cuenta].push(valor);
+    }
+
+    function actualizarCuentas() {
+      cuentasT.innerHTML = '';
+      for (const cuenta in cuentas) {
+        const div = document.createElement('div');
+        div.className = 't-box';
+        div.innerHTML = `<h4>${cuenta}</h4>` + cuentas[cuenta].map(val => `<p>${val}</p>`).join('');
+        cuentasT.appendChild(div);
+      }
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const fecha = document.getElementById('fecha').value;
+      const tipo = tipoInput.value;
+      const descripcion = document.getElementById('descripcion').value;
+      const cantidad = parseFloat(cantidadInput.value);
+      let precio = parseFloat(precioInput.value);
+
+      if ((tipo === "Venta" || tipo === "Devolución sobre compra") && cantidad > existencias) {
+        alert("No puedes realizar esta operación: cantidad supera las existencias disponibles.");
+        return;
+      }
+
+      const esEntrada = tipo === "Compra" || tipo === "Inventario inicial" || tipo === "Devolución sobre venta";
+      const esSalida = tipo === "Venta" || tipo === "Devolución sobre compra";
+
+      let total = 0;
+      if (esEntrada) {
+        total = cantidad * precio;
+        existencias += cantidad;
+        valorFinal += total;
+        if (tipo === "Compra") {
+          agregarMovimiento("Almacen", `+$${total}`);
+          agregarMovimiento("Proveedores", `+$${total}`);
+        } else if (tipo === "Inventario inicial") {
+          agregarMovimiento("Almacen", `+$${total}`);
+          agregarMovimiento("Capital", `+$${total}`);
+        } else if (tipo === "Devolución sobre venta") {
+          agregarMovimiento("Almacen", `+$${total}`);
+          agregarMovimiento("Devolución / Venta", `+$${total}`);
+        }
+      } else if (esSalida) {
+        precio = valorFinal / existencias;
+        total = cantidad * precio;
+        ventasTotales += (tipo === "Venta") ? cantidad * precio : 0;
+        costoDeVentas += total;
+        existencias -= cantidad;
+        valorFinal -= total;
+        if (tipo === "Venta") {
+          agregarMovimiento("Ventas", `+$${(cantidad * precio).toFixed(2)}`);
+          agregarMovimiento("Costo de Ventas", `+$${total.toFixed(2)}`);
+          agregarMovimiento("Almacen", `-$${total.toFixed(2)}`);
+        } else if (tipo === "Devolución sobre compra") {
+          agregarMovimiento("Almacen", `-$${total.toFixed(2)}`);
+          agregarMovimiento("Devolución / Compra", `+$${total.toFixed(2)}`);
+        }
+      }
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${fecha}</td>
+        <td>${tipo}</td>
+        <td>${descripcion}</td>
+        <td>${cantidad}</td>
+        <td>$${precio.toFixed(2)}</td>
+        <td>$${(cantidad * precio).toFixed(2)}</td>
+        <td>${existencias}</td>
+        <td>$${valorFinal.toFixed(2)}</td>
+      `;
+      tabla.appendChild(row);
+
+      document.getElementById('stockInfo').innerText = `Cantidad: ${existencias} unidades | Valor: $${valorFinal.toFixed(2)}`;
+      document.getElementById('utilidadInfo').innerText = `Ventas netas: $${ventasTotales.toFixed(2)} | Costo de ventas: $${costoDeVentas.toFixed(2)} | Utilidad bruta: $${(ventasTotales - costoDeVentas).toFixed(2)}`;
+
+      actualizarCuentas();
+      form.reset();
+      ajustarPrecio(tipoInput.value);
+    });
+
     function mostrar(id) {
       document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
       document.getElementById(id).classList.add('active');
