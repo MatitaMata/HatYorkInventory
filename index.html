@@ -104,7 +104,7 @@
       </select>
       <input type="text" id="descripcion" placeholder="Descripción">
       <input type="number" id="cantidad" placeholder="Cantidad">
-      <input type="number" id="precio" placeholder="Precio Unitario">
+      <input type="number" id="precio" placeholder="Precio Unitario" readonly>
       <button type="submit">Agregar</button>
     </form>
   </section>
@@ -146,6 +146,8 @@
     const tabla = document.querySelector('#tabla tbody');
     const cuentasT = document.getElementById('cuentasT');
     const precioInput = document.getElementById('precio');
+    const tipoInput = document.getElementById('tipo');
+    const cantidadInput = document.getElementById('cantidad');
 
     let cuentas = {
       Capital: [],
@@ -160,18 +162,14 @@
     };
 
     function ajustarPrecio(tipo) {
-      if (tipo === "Venta" || tipo === "Devolución sobre venta") {
-        precioInput.disabled = true;
-        if (existencias > 0) {
-          const promedio = valorFinal / existencias;
-          precioInput.value = promedio.toFixed(2);
-        } else {
-          precioInput.value = "";
-        }
+      const esAutomatico = tipo === "Venta" || tipo === "Devolución sobre venta";
+      if (esAutomatico && existencias > 0) {
+        const promedio = valorFinal / existencias;
+        precioInput.value = promedio.toFixed(2);
       } else {
-        precioInput.disabled = false;
         precioInput.value = "";
       }
+      precioInput.readOnly = esAutomatico;
     }
 
     function agregarMovimiento(cuenta, valor) {
@@ -193,10 +191,15 @@
       e.preventDefault();
 
       const fecha = document.getElementById('fecha').value;
-      const tipo = document.getElementById('tipo').value;
+      const tipo = tipoInput.value;
       const descripcion = document.getElementById('descripcion').value;
-      const cantidad = parseFloat(document.getElementById('cantidad').value);
-      let precio = parseFloat(document.getElementById('precio').value);
+      const cantidad = parseFloat(cantidadInput.value);
+      let precio = parseFloat(precioInput.value);
+
+      if ((tipo === "Venta" || tipo === "Devolución sobre compra") && cantidad > existencias) {
+        alert("No puedes realizar esta operación: cantidad supera las existencias disponibles.");
+        return;
+      }
 
       const esEntrada = tipo === "Compra" || tipo === "Inventario inicial" || tipo === "Devolución sobre venta";
       const esSalida = tipo === "Venta" || tipo === "Devolución sobre compra";
@@ -244,7 +247,7 @@
 
       actualizarCuentas();
       form.reset();
-      ajustarPrecio("Compra");
+      ajustarPrecio(tipoInput.value);
     });
 
     function mostrar(id) {
@@ -254,4 +257,3 @@
   </script>
 </body>
 </html>
-
