@@ -48,13 +48,12 @@
     th {
       background-color: #d9d9d9;
     }
-    input, select {
+    input, select, button {
       margin: 5px;
       padding: 5px;
     }
     button {
       padding: 10px 20px;
-      margin: 10px 0;
       background-color: #007acc;
       color: white;
       border: none;
@@ -80,174 +79,155 @@
       margin: 4px 0;
       font-size: 14px;
     }
-    .footer-icons {
-      margin-top: 50px;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-    }
-    .footer-icons img {
-      width: 60px;
-      height: 60px;
-      cursor: pointer;
-    }
-    h1 {
-      font-size: 40px;
-      text-align: center;
-    }
-    .info-text {
-      text-align: center;
-      font-size: 18px;
-    }
   </style>
 </head>
 <body>
-  <section id="portada" class="active">
-    <h1>Valoración de Inventario</h1>
-    <div class="footer-icons">
-      <img src="Introduccion.png" alt="Introducción" onclick="mostrar('introduccion')">
-      <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
-      <img src="Conclusion.png" alt="Conclusión" onclick="mostrar('conclusion')">
-    </div>
+  <section id="operacion" class="active">
+    <h2>Ingresar Operación</h2>
+    <form id="form">
+      <input type="text" id="fecha" placeholder="Fecha">
+      <select id="tipo">
+        <option>Inventario inicial</option>
+        <option>Compra</option>
+        <option>Venta</option>
+        <option>Devolución sobre venta</option>
+        <option>Devolución sobre compra</option>
+      </select>
+      <input type="text" id="descripcion" placeholder="Descripción">
+      <input type="number" id="cantidad" placeholder="Cantidad">
+      <input type="number" id="precio" placeholder="Precio Unitario">
+      <button type="submit">Agregar</button>
+    </form>
   </section>
 
-  <section id="introduccion">
-    <h2 style="text-align: center;">Introducción</h2>
-    <p class="info-text">Aquí va la información de introducción que tienes en la imagen.</p>
-    <div class="footer-icons">
-      <img src="Portada.png" alt="Portada" onclick="mostrar('portada')">
-      <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
-      <img src="Conclusion.png" alt="Conclusión" onclick="mostrar('conclusion')">
-    </div>
+  <section id="valoracion">
+    <h2>Tabla de Valoración Ponderada</h2>
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Cantidad</th><th>C.U</th><th>Total</th><th>Existencias</th><th>Valor Final</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </section>
 
-  <section id="conclusion">
-    <h2 style="text-align: center;">Conclusión</h2>
-    <p class="info-text">Aquí va la información de la conclusión que tienes en la imagen.</p>
-    <div class="footer-icons">
-      <img src="Portada.png" alt="Portada" onclick="mostrar('portada')">
-      <img src="Introduccion.png" alt="Introducción" onclick="mostrar('introduccion')">
-      <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
-    </div>
+  <section id="registro">
+    <h2>Registro de Operaciones (Cuentas T)</h2>
+    <div class="t-account" id="cuentasT"></div>
   </section>
 
-  <section id="menu">
-    <h1>Valoración de Inventario</h1>
-    <div class="menu-icons">
-      <img src="AgregarOperacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
-      <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
-      <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
-      <img src="StockMercancia.png" alt="Stock" onclick="mostrar('stock')">
-      <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
-    </div>
-    <div class="footer-icons">
-      <img src="Portada.png" alt="Portada" onclick="mostrar('portada')">
-      <img src="Introduccion.png" alt="Introducción" onclick="mostrar('introduccion')">
-      <img src="Conclusion.png" alt="Conclusión" onclick="mostrar('conclusion')">
-    </div>
+  <section id="stock">
+    <h2>Stock de Mercancía</h2>
+    <p id="stockInfo">No hay datos aún.</p>
   </section>
 
- <script>
-  let existencias = 0;
-  let valorFinal = 0;
-  let ventasTotales = 0;
-  let costoDeVentas = 0;
+  <section id="utilidad">
+    <h2>Utilidad Bruta</h2>
+    <p id="utilidadInfo">No hay datos aún.</p>
+  </section>
 
-  const cuentas = {
-    Capital: [],
-    Caja: [],
-    Banco: [],
-    Almacen: [],
-    Proveedores: [],
-    Ventas: [],
-    "Costo de Ventas": [],
-    "Devolución / Compra": [],
-    "Devolución / Venta": []
-  };
+  <script>
+    let existencias = 0;
+    let valorFinal = 0;
+    let ventasTotales = 0;
+    let costoDeVentas = 0;
 
-  function mostrar(id) {
-    document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
+    let cuentas = {
+      Capital: [], Caja: [], Banco: [], Almacen: [], Proveedores: [], Ventas: [],
+      "Costo de Ventas": [], "Devolución / Compra": [], "Devolución / Venta": []
+    };
 
-  function agregarMovimiento(cuenta, valor) {
-    cuentas[cuenta] = cuentas[cuenta] || [];
-    cuentas[cuenta].push(valor);
-  }
-
-  function actualizarCuentas() {
-    const cuentasT = document.getElementById('cuentasT');
-    cuentasT.innerHTML = '';
-    for (const cuenta in cuentas) {
-      const div = document.createElement('div');
-      div.className = 't-box';
-      div.innerHTML = `<h4>${cuenta}</h4>` + cuentas[cuenta].map(val => `<p>${val}</p>`).join('');
-      cuentasT.appendChild(div);
-    }
-  }
-
-  document.getElementById("form").addEventListener("submit", function (e) {
-    e.preventDefault(); // 👈 Esto evita la recarga
-
-    const fecha = document.getElementById("fecha").value;
-    const tipo = document.getElementById("tipo").value;
-    const descripcion = document.getElementById("descripcion").value;
-    const cantidad = parseFloat(document.getElementById("cantidad").value);
-    let precio = parseFloat(document.getElementById("precio").value);
-    let total = precio * cantidad;
-
-    if (tipo === "Venta" || tipo === "Devolución sobre venta") {
-      precio = valorFinal / existencias;
-      total = precio * cantidad;
+    function mostrar(id) {
+      document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
     }
 
-    if (tipo === "Devolución sobre compra") {
-      const filas = document.querySelectorAll("#tabla tbody tr");
-      if (filas.length > 0) {
-        const ultimaFila = filas[filas.length - 1];
-        precio = parseFloat(ultimaFila.children[4].textContent.replace("$", ""));
-        total = precio * cantidad;
+    function agregarMovimiento(cuenta, valor) {
+      cuentas[cuenta] = cuentas[cuenta] || [];
+      cuentas[cuenta].push(valor);
+    }
+
+    function actualizarCuentas() {
+      const cuentasT = document.getElementById('cuentasT');
+      cuentasT.innerHTML = '';
+      for (const cuenta in cuentas) {
+        const div = document.createElement('div');
+        div.className = 't-box';
+        div.innerHTML = `<h4>${cuenta}</h4>` + cuentas[cuenta].map(val => `<p>${val}</p>`).join('');
+        cuentasT.appendChild(div);
       }
     }
 
-    // Actualización de inventario y cuentas
-    if (tipo === "Compra" || tipo === "Inventario inicial" || tipo === "Devolución sobre venta") {
-      existencias += cantidad;
-      valorFinal += total;
-    } else if (tipo === "Venta" || tipo === "Devolución sobre compra") {
-      existencias -= cantidad;
-      valorFinal -= total;
-    }
+    document.getElementById("tipo").addEventListener("change", function () {
+      const tipo = this.value;
+      const precio = document.getElementById("precio");
 
-    ventasTotales += tipo === "Venta" ? total : 0;
-    costoDeVentas += tipo === "Venta" ? total : 0;
+      if (tipo === "Venta" || tipo === "Devolución sobre venta") {
+        precio.readOnly = true;
+        if (existencias > 0) {
+          const promedio = valorFinal / existencias;
+          precio.value = promedio.toFixed(2);
+        } else {
+          precio.value = "0.00";
+        }
+      } else {
+        precio.readOnly = false;
+        precio.value = "";
+      }
+    });
 
-    const nuevaFila = document.createElement("tr");
-    nuevaFila.innerHTML = `
-      <td>${fecha}</td>
-      <td>${tipo}</td>
-      <td>${descripcion}</td>
-      <td>${cantidad}</td>
-      <td>$${precio.toFixed(2)}</td>
-      <td>$${total.toFixed(2)}</td>
-      <td>${existencias}</td>
-      <td>$${valorFinal.toFixed(2)}</td>
-    `;
-    document.querySelector("#tabla tbody").appendChild(nuevaFila);
+    document.getElementById("form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const fecha = document.getElementById("fecha").value;
+      const tipo = document.getElementById("tipo").value;
+      const descripcion = document.getElementById("descripcion").value;
+      const cantidad = parseFloat(document.getElementById("cantidad").value);
+      let precio = parseFloat(document.getElementById("precio").value);
+      let total = cantidad * precio;
 
-    document.getElementById("stockInfo").innerText =
-      `Cantidad: ${existencias} unidades | Valor: $${valorFinal.toFixed(2)}`;
-    document.getElementById("utilidadInfo").innerText =
-      `Ventas netas: $${ventasTotales.toFixed(2)} | Costo de ventas: $${costoDeVentas.toFixed(2)} | Utilidad bruta: $${(ventasTotales - costoDeVentas).toFixed(2)}`;
+      if ((tipo === "Venta" || tipo === "Devolución sobre venta") && existencias > 0) {
+        precio = valorFinal / existencias;
+        total = cantidad * precio;
+      }
 
-    actualizarCuentas();
-    this.reset();
-    document.getElementById("tipo").dispatchEvent(new Event("change"));
-  });
+      if (tipo === "Devolución sobre compra") {
+        const filas = document.querySelectorAll("#tabla tbody tr");
+        if (filas.length > 0) {
+          const ultimaFila = filas[filas.length - 1];
+          precio = parseFloat(ultimaFila.children[4].textContent.replace("$", ""));
+          total = precio * cantidad;
+        }
+      }
 
-</script>
+      const nuevaFila = document.createElement("tr");
+      nuevaFila.innerHTML = `
+        <td>${fecha}</td>
+        <td>${tipo}</td>
+        <td>${descripcion}</td>
+        <td>${cantidad}</td>
+        <td>$${precio.toFixed(2)}</td>
+        <td>$${total.toFixed(2)}</td>
+        <td>${existencias += tipo === "Venta" || tipo === "Devolución sobre compra" ? -cantidad : cantidad}</td>
+        <td>$${valorFinal = tipo === "Venta" || tipo === "Devolución sobre compra" ? valorFinal - total : valorFinal + total, valorFinal.toFixed(2)}</td>
+      `;
+
+      document.querySelector("#tabla tbody").appendChild(nuevaFila);
+      ventasTotales += tipo === "Venta" ? total : 0;
+      costoDeVentas += tipo === "Venta" ? total : 0;
+
+      document.getElementById("stockInfo").innerText = `Cantidad: ${existencias} unidades | Valor: $${valorFinal.toFixed(2)}`;
+      document.getElementById("utilidadInfo").innerText = `Ventas netas: $${ventasTotales.toFixed(2)} | Costo de ventas: $${costoDeVentas.toFixed(2)} | Utilidad bruta: $${(ventasTotales - costoDeVentas).toFixed(2)}`;
+
+      agregarMovimiento("Almacen", `$${total}`);
+      actualizarCuentas();
+      this.reset();
+      document.getElementById("tipo").dispatchEvent(new Event("change"));
+    });
+  </script>
 </body>
 </html>
+
 
 
 
