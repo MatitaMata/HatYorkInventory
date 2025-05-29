@@ -189,6 +189,7 @@
     <div class="footer-icons">
       <img src="Menu.png" alt="Menú" onclick="mostrar('menu')">
     </div>
+    <div class="t-account" id="cuentasT"></div>
   </section>
 
   <section id="stock">
@@ -213,6 +214,36 @@
     let ventasTotales = 0;
     let costoDeVentas = 0;
 
+let cuentas = {
+  Capital: [],
+  Caja: [],
+  Banco: [],
+  Almacen: [],
+  Proveedores: [],
+  Ventas: [],
+  "Costo de Ventas": [],
+  "Devolución / Compra": [],
+  "Devolución / Venta": []
+};
+
+function agregarMovimiento(cuenta, valor) {
+  cuentas[cuenta] = cuentas[cuenta] || [];
+  cuentas[cuenta].push(valor);
+}
+
+function actualizarCuentas() {
+  cuentasT.innerHTML = '';
+  for (const cuenta in cuentas) {
+    const div = document.createElement('div');
+    div.className = 't-box';
+    div.innerHTML = `<h4>${cuenta}</h4>` + cuentas[cuenta].map(val => `<p>${val}</p>`).join('');
+    cuentasT.appendChild(div);
+  }
+}
+
+agregarMovimiento("Capital", "$100,000");
+actualizarCuentas();
+    
     function mostrar(id) {
       document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
       document.getElementById(id).classList.add('active');
