@@ -85,9 +85,9 @@
 <body>
   <div class="menu-icons">
     <img src="AgregarOperacion.png" alt="Ingresar Operación" onclick="mostrar('operacion')">
-    <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">  
+    <img src="ValoracionPonderada.png" alt="Valoración" onclick="mostrar('valoracion')">
     <img src="RegistroOperaciones.png" alt="Registro" onclick="mostrar('registro')">
-    <img src="StockMercancía.png" alt="Stock" onclick="mostrar('stock')">
+    <img src="StockMercancia.png" alt="Stock" onclick="mostrar('stock')">
     <img src="UtilidadBruta.png" alt="Utilidad" onclick="mostrar('utilidad')">
   </div>
 
@@ -95,7 +95,7 @@
     <h2>Ingresar Operación</h2>
     <form id="form">
       <input type="text" id="fecha" placeholder="Fecha">
-      <select id="tipo">
+      <select id="tipo" onchange="ajustarPrecio(this.value)">
         <option>Inventario inicial</option>
         <option>Compra</option>
         <option>Venta</option>
@@ -145,6 +145,7 @@
     const form = document.getElementById('form');
     const tabla = document.querySelector('#tabla tbody');
     const cuentasT = document.getElementById('cuentasT');
+    const precioInput = document.getElementById('precio');
 
     let cuentas = {
       Capital: [],
@@ -157,6 +158,21 @@
       'Devolución / Compra': [],
       'Devolución / Venta': []
     };
+
+    function ajustarPrecio(tipo) {
+      if (tipo === "Venta" || tipo === "Devolución sobre venta") {
+        precioInput.disabled = true;
+        if (existencias > 0) {
+          const promedio = valorFinal / existencias;
+          precioInput.value = promedio.toFixed(2);
+        } else {
+          precioInput.value = "";
+        }
+      } else {
+        precioInput.disabled = false;
+        precioInput.value = "";
+      }
+    }
 
     function agregarMovimiento(cuenta, valor) {
       cuentas[cuenta] = cuentas[cuenta] || [];
@@ -180,7 +196,7 @@
       const tipo = document.getElementById('tipo').value;
       const descripcion = document.getElementById('descripcion').value;
       const cantidad = parseFloat(document.getElementById('cantidad').value);
-      const precio = parseFloat(document.getElementById('precio').value);
+      let precio = parseFloat(document.getElementById('precio').value);
 
       const esEntrada = tipo === "Compra" || tipo === "Inventario inicial" || tipo === "Devolución sobre venta";
       const esSalida = tipo === "Venta" || tipo === "Devolución sobre compra";
@@ -201,8 +217,8 @@
           agregarMovimiento("Devolución / Venta", `+$${total}`);
         }
       } else if (esSalida) {
-        const costoPromedio = valorFinal / existencias;
-        total = cantidad * costoPromedio;
+        precio = valorFinal / existencias;
+        total = cantidad * precio;
         ventasTotales += (tipo === "Venta") ? cantidad * precio : 0;
         costoDeVentas += total;
         existencias -= cantidad;
@@ -228,6 +244,7 @@
 
       actualizarCuentas();
       form.reset();
+      ajustarPrecio("Compra");
     });
 
     function mostrar(id) {
@@ -237,6 +254,4 @@
   </script>
 </body>
 </html>
-
-
 
