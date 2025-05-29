@@ -208,13 +208,91 @@
   </section>
 
   <script>
+    let existencias = 0;
+    let valorFinal = 0;
+    let ventasTotales = 0;
+    let costoDeVentas = 0;
+
     function mostrar(id) {
       document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
       document.getElementById(id).classList.add('active');
     }
+
+    document.getElementById("tipo").addEventListener("change", function () {
+      const tipo = this.value;
+      const precio = document.getElementById("precio");
+
+      if (tipo === "Venta" || tipo === "Devolución sobre venta") {
+        precio.readOnly = true;
+        if (existencias > 0) {
+          const promedio = valorFinal / existencias;
+          precio.value = promedio.toFixed(2);
+        } else {
+          precio.value = "0.00";
+        }
+      } else if (tipo === "Devolución sobre compra") {
+        precio.readOnly = true;
+        const filas = document.querySelectorAll("#tabla tbody tr");
+        if (filas.length > 0) {
+          const ultimaFila = filas[filas.length - 1];
+          const cu = ultimaFila.children[4].textContent.replace("$", "");
+          precio.value = parseFloat(cu).toFixed(2);
+        }
+      } else {
+        precio.readOnly = false;
+        precio.value = "";
+      }
+    });
+
+    document.getElementById("form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const fecha = document.getElementById("fecha").value;
+      const tipo = document.getElementById("tipo").value;
+      const descripcion = document.getElementById("descripcion").value;
+      const cantidad = parseFloat(document.getElementById("cantidad").value);
+      let precio = parseFloat(document.getElementById("precio").value);
+      let total = precio * cantidad;
+
+      if (tipo === "Venta" || tipo === "Devolución sobre venta") {
+        precio = valorFinal / existencias;
+        total = precio * cantidad;
+      }
+
+      if (tipo === "Devolución sobre compra") {
+        const filas = document.querySelectorAll("#tabla tbody tr");
+        if (filas.length > 0) {
+          const ultimaFila = filas[filas.length - 1];
+          precio = parseFloat(ultimaFila.children[4].textContent.replace("$", ""));
+          total = precio * cantidad;
+        }
+      }
+
+      const nuevaFila = document.createElement("tr");
+      nuevaFila.innerHTML = `
+        <td>${fecha}</td>
+        <td>${tipo}</td>
+        <td>${descripcion}</td>
+        <td>${cantidad}</td>
+        <td>$${precio.toFixed(2)}</td>
+        <td>$${total.toFixed(2)}</td>
+        <td>${existencias += tipo === "Venta" || tipo === "Devolución sobre compra" ? -cantidad : cantidad}</td>
+        <td>$${valorFinal = tipo === "Venta" || tipo === "Devolución sobre compra" ? valorFinal - total : valorFinal + total, valorFinal.toFixed(2)}</td>
+      `;
+
+      document.querySelector("#tabla tbody").appendChild(nuevaFila);
+      ventasTotales += tipo === "Venta" ? total : 0;
+      costoDeVentas += tipo === "Venta" ? total : 0;
+
+      document.getElementById("stockInfo").innerText = `Cantidad: ${existencias} unidades | Valor: $${valorFinal.toFixed(2)}`;
+      document.getElementById("utilidadInfo").innerText = `Ventas netas: $${ventasTotales.toFixed(2)} | Costo de ventas: $${costoDeVentas.toFixed(2)} | Utilidad bruta: $${(ventasTotales - costoDeVentas).toFixed(2)}`;
+
+      this.reset();
+      document.getElementById("tipo").dispatchEvent(new Event("change"));
+    });
   </script>
 </body>
 </html>
+
 
 
 
