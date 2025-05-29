@@ -225,31 +225,21 @@
       document.getElementById(id).classList.add('active');
     }
 
-    document.getElementById("tipo").addEventListener("change", function () {
-      const tipo = this.value;
-      const precio = document.getElementById("precio");
+    function actualizarCuentasT() {
+      const cuentasDiv = document.getElementById("cuentasT");
+      cuentasDiv.innerHTML = "";
 
-      if (tipo === "Venta" || tipo === "Devolución sobre venta") {
-        precio.readOnly = true;
-        if (existencias > 0) {
-          const promedio = valorFinal / existencias;
-          precio.value = promedio.toFixed(2);
-        } else {
-          precio.value = "0.00";
-        }
-      } else if (tipo === "Devolución sobre compra") {
-        precio.readOnly = true;
-        const filas = document.querySelectorAll("#tabla tbody tr");
-        if (filas.length > 0) {
-          const ultimaFila = filas[filas.length - 1];
-          const cu = ultimaFila.children[4].textContent.replace("$", "");
-          precio.value = parseFloat(cu).toFixed(2);
-        }
-      } else {
-        precio.readOnly = false;
-        precio.value = "";
-      }
-    });
+      const crearCaja = (titulo, valores) => {
+        const box = document.createElement("div");
+        box.className = "t-box";
+        box.innerHTML = `<h4>${titulo}</h4>` + valores.map(val => `<p>$${val.toFixed(2)}</p>`).join("");
+        cuentasDiv.appendChild(box);
+      };
+
+      crearCaja("Ventas", [ventasTotales]);
+      crearCaja("Costo de Ventas", [costoDeVentas]);
+      crearCaja("Utilidad Bruta", [ventasTotales - costoDeVentas]);
+    }
 
     document.getElementById("form").addEventListener("submit", function (e) {
       e.preventDefault();
@@ -293,23 +283,11 @@
       document.getElementById("stockInfo").innerText = `Cantidad: ${existencias} unidades | Valor: $${valorFinal.toFixed(2)}`;
       document.getElementById("utilidadInfo").innerText = `Ventas netas: $${ventasTotales.toFixed(2)} | Costo de ventas: $${costoDeVentas.toFixed(2)} | Utilidad bruta: $${(ventasTotales - costoDeVentas).toFixed(2)}`;
 
+      actualizarCuentasT();
+
       this.reset();
       document.getElementById("tipo").dispatchEvent(new Event("change"));
     });
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
